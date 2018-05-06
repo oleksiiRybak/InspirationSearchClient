@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!--
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div>
+            <form action="http://localhost:8983/solr/#/inspirationSearch/query">
+                <input type="text" name="inspirationSearchField" value="" size="255" />
+                <input type="submit" value="Submit" name="submit" />
+            </form>            
+        </div>
+        <div id="rs"></div>
+        <script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js'></script>
+        <script type='text/javascript'>
+          $.getJSON("http://localhost:8983/solr/select/?q=prophet&wt=json&json.wrf=?&indent=true", function(result){
+          var Parent = document.getElementById('rs');
+          for (var i = 0; i < result.response.docs.length; i++) {
+            var thisResult = "<b>" + result.response.docs[i].name + "</b><br>" + result.response.docs[i].description
+            + ", " + result.response.docs[i].tags + "<br>";
+            var NewDiv = document.createElement("DIV");
+            NewDiv.innerHTML = thisResult;
+            Parent.appendChild(NewDiv);
+          }
+        });
+      </script>
+    </body>
+</html>
+-->
+
+<html>
+<head>
+<title>Solr Ajax Example</title>
+<script language="Javascript">
+// derived from http://www.degraeve.com/reference/simple-ajax-example.php
+function xmlhttpPost(strURL) {
+    var xmlHttpReq = false;
+    var self = this;
+    if (window.XMLHttpRequest) { // Mozilla/Safari
+        self.xmlHttpReq = new XMLHttpRequest();
+    }
+    else if (window.ActiveXObject) { // IE
+        self.xmlHttpReq = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    self.xmlHttpReq.open('POST', strURL, true);
+    self.xmlHttpReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    self.xmlHttpReq.onreadystatechange = function() {
+        if (self.xmlHttpReq.readyState == 4) {
+            updatepage(self.xmlHttpReq.responseText);
+        }
+    }
+
+    var params = getstandardargs().concat(getquerystring());
+    var strData = params.join('&');
+    self.xmlHttpReq.send(strData);
+}
+
+function getstandardargs() {
+    var params = [
+        'wt=json'
+        , 'indent=on'
+        , 'hl=true'
+        , 'hl.fl=name,features'
+        ];
+
+    return params;
+}
+function getquerystring() {
+  var form = document.forms['f1'];
+  var query = form.query.value;
+  qstr = 'q=' + escape(query);
+  return qstr;
+}
+
+// this function does all the work of parsing the solr response and updating the page.
+function updatepage(str){
+  document.getElementById("raw").innerHTML = str;
+  var rsp = eval("("+str+")"); // use eval to parse Solr's JSON response
+  var html= "<br>numFound=" + rsp.response.numFound;
+  var first = rsp.response.docs[0];
+  html += "<br>product name="+ first.name;
+  var hl=rsp.highlighting[first.id];
+  if (hl.name != null) { html += "<br>name highlighted: " + hl.name[0]; }
+  if (hl.features != null) { html += "<br>features highligted: " + hl.features[0]; }
+  document.getElementById("result").innerHTML = html;
+}
+</script>
+</head>
+<body>
+
+<form name="f1" onsubmit='XMLHttpRequest("http://localhost:8983/solr/#/inspirationSearch/select"); return false;'>
+  <p>query: <input name="query" type="text">
+  <input value="Go" type="submit"></p>
+
+<div id="result"></div>
+<p/><pre>Raw JSON String: <div id="raw"></div></pre>
+</form>
+</body>
+</html>
+
+
